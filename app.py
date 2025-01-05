@@ -2,9 +2,10 @@ import requests
 from bs4 import BeautifulSoup
 import re
 from flask import Flask, render_template, request
+from flask_cors import CORS 
 
 app = Flask(__name__)
-
+CORS(app)
 # Function to clean text by removing unwanted characters
 def clean_text(text):
     cleaned_text = re.sub(r'\(\d+\)', '', text)  # Removes (1), (2), (3), etc.
@@ -66,4 +67,4 @@ def search_cases_and_scrape_data():
     return render_template('index.html', search_term=search_term, results=results)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0',debug=True)
