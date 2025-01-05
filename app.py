@@ -67,4 +67,4 @@ def search_cases_and_scrape_data():
     return render_template('index.html', search_term=search_term, results=results)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0',debug=True)
+    app.run(host='0.0.0.0',port=5000,debug=True)
