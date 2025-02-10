@@ -143,6 +143,7 @@
 <body>
     <div class="container">
         <h1>Yours Legally,</h1>
+
         <form method="POST" action="/" id="search-form">
             <div class="mb-3">
                 <label for="search_term" class="form-label text-white">Enter Case keywords</label>
@@ -160,44 +161,50 @@
 
         <hr class="text-white">
 
-        {% if results %}
-        <h3 class="text-white">Search Results for "{{ search_term }}"</h3>
-        <div class="result-list">
-            {% for result in results %}
-            <div class="result-item">
-                <p class="case-title">
-                    <a class="case-link" href="{{ result['case_url'] }}" target="_blank">{{ result['case_title'] }}</a>
-                </p>
-                <p class="case-content"><strong>Case Title:</strong> {{ result['full_case_title'] }}</p>
-                <p class="case-content"><strong>Article Title:</strong> {{ result['article_title'] }}</p>
+        <div class="result-section">
+            {% if similar_cases %}
+            <h3 class="text-white">Similar Cases for "{{ search_term }}"</h3>
+            <div class="result-list">
+                {% for case in similar_cases %}
+                <div class="result-item">
+                    <p class="case-title">
+                        <a class="case-link" href="{{ case['case_url'] }}" target="_blank">{{ case['case_title'] }}</a>
+                    </p>
+                    <p><strong>Similarity Score:</strong> {{ case['similarity'] }}</p>
+                    <p><strong>Article Title: </strong>{{ case['article_title'] }}</p>
 
-                {% set content_lines = result['full_case_content'].split('\n') %}
-                {% set content_without_last_line = content_lines[:-1]|join('\n') %}
+                    {% if case['full_case_content'] %}
+                    {% set content_lines = case['full_case_content'].split('\n') %}
+                    {% set content_without_last_line = content_lines[:-1] | join('\n') %}
+                    {% set content_length = content_without_last_line | length %}
 
-                {% set content_length = content_without_last_line|length %}
-
-                <p class="case-content">
-                    <strong>Description</strong><br>
-                    {% if content_length > 1000 %}
-                    <span id="content-{{ loop.index }}" class="truncated">
-                        {{ content_without_last_line|truncate(1000, True) }}
-                        <span class="read-more" onclick="toggleContent({{ loop.index }})">Read More</span>
-                    </span>
-                    <span id="full-content-{{ loop.index }}" style="display: none;">
+                    <p class="case-content">
+                        <strong>Description</strong><br>
+                        {% if content_length > 1000 %}
+                        <span id="content-{{ loop.index }}" class="truncated">
+                            {{ content_without_last_line | truncate(1000, True) }}
+                            <span class="read-more" onclick="toggleContent({{ loop.index }})">Read More</span>
+                        </span>
+                        <span id="full-content-{{ loop.index }}" style="display: none;">
+                            {{ content_without_last_line }}
+                            <span class="read-more" onclick="toggleContent({{ loop.index }})">Read Less</span>
+                        </span>
+                        {% else %}
                         {{ content_without_last_line }}
-                        <span class="read-more" onclick="toggleContent({{ loop.index }})">Read Less</span>
-                    </span>
+                        {% endif %}
+                    </p>
                     {% else %}
-                    {{ content_without_last_line }}
+                    <p><strong>Case Content:</strong> No content available.</p>
                     {% endif %}
-                </p>
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
+            {% elif search_term %}
+            <p>No similar cases found for "{{ search_term }}".</p>
+            {% endif %}
         </div>
-        {% elif search_term %}
-        <p class="no-results">No results found for "{{ search_term }}". Please try a different keyword.</p>
-        {% endif %}
     </div>
+
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -209,7 +216,6 @@
             const truncatedContent = document.getElementById('content-' + index);
             const fullContent = document.getElementById('full-content-' + index);
 
-            // Ensure only description is toggled, not the title
             if (truncatedContent.style.display === "none") {
                 truncatedContent.style.display = "block";
                 fullContent.style.display = "none";
